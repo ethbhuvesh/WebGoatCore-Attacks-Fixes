@@ -1,0 +1,42 @@
+﻿@{
+    ViewData["Title"] = "About";
+}
+
+<div class="owaspTopTen">
+    <h2>
+        About WebGoat.NetCore
+    </h2>
+    <div>
+        Welcome to WebGoat.NetCore, an intentionally insecure ecommerce website created so that
+        you and I can learn to create intentionally secure websites. We've introduced vulnerabilities
+        covering the OWASP Top Ten as well as several others.
+    </div>
+</div>
+<div class="owaspTopTen">
+    <h2>
+        Other Notes
+    </h2>
+    <div>
+        When a user registers, he must enter a username and company name. His customerId
+        will be based on CompanyName. His contact Name will be his UserName. Customer.ContactName
+        cannot be changed once set or the link between ASP.NET's authentication and the
+        Northwind tables will be broken.
+    </div>
+</div>
+<br />
+<div class="owaspTopTen">
+    <form enctype="multipart/form-data" method="post" asp-controller="Home" asp-action="UploadFile" runat="server">
+        <dl>
+            <dt>
+                <h2>Upload your brochure to provide us with the feedback</h2>
+            </dt>
+            <dd>
+                <input type="file" name="FormFile" id="FormFile" runat="server">
+
+            </dd>
+        </dl>
+        <input class="btn btn-dark" type="submit" value="Upload" runat="server" />
+    </form>
+</div>
+<br />
+<div>@ViewBag.Message</div>
