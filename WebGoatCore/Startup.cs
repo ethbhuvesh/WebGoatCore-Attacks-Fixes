@@ -93,6 +93,15 @@ namespace WebGoatCore
                 options.IdleTimeout = TimeSpan.FromHours(1);
             });
 
+            //Fix
+
+            services.Configure<IISServerOptions>(options =>
+            {
+                options.MaxRequestBodySize = 1048576; //10MB limit
+            });
+
+            //
+
             JsonConvert.DefaultSettings = () => new JsonSerializerSettings
             {
                 PreserveReferencesHandling = PreserveReferencesHandling.Objects
