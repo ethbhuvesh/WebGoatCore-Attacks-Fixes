@@ -69,12 +69,16 @@ namespace WebGoatCore.Controllers
             try
             {
                 var path = HttpContextServerVariableExtensions.GetServerVariable(this.HttpContext, "PATH_TRANSLATED");
-                path = path + "\\..\\wwwroot\\upload\\" + FormFile.FileName;
+
+                var file_name = Path.GetFileName(FormFile.FileName);
+
+                path = path + "\\..\\wwwroot\\upload\\" + file_name;
+
                 using (var fileStream = new FileStream(path, FileMode.Create))
                 {
                     await FormFile.CopyToAsync(fileStream);
                 }
-                ViewBag.Message = $"File {FormFile.FileName} Uploaded Successfully at /upload";
+                ViewBag.Message = $"File {file_name} Uploaded Successfully";
                 return View("About");
             }
             catch (Exception ex)
