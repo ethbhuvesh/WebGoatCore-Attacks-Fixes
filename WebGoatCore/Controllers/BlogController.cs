@@ -3,6 +3,8 @@ using WebGoatCore.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Collections.Generic;
+using System.Text.Encodings.Web;
 
 namespace WebGoatCore.Controllers
 {
@@ -12,15 +14,28 @@ namespace WebGoatCore.Controllers
         private readonly BlogEntryRepository _blogEntryRepository;
         private readonly BlogResponseRepository _blogResponseRepository;
 
-        public BlogController(BlogEntryRepository blogEntryRepository, BlogResponseRepository blogResponseRepository, NorthwindContext context)
+        HtmlEncoder _htmlencoder;
+
+        public BlogController(BlogEntryRepository blogEntryRepository, BlogResponseRepository blogResponseRepository, NorthwindContext context, HtmlEncoder htmlencoder)
         {
             _blogEntryRepository = blogEntryRepository;
             _blogResponseRepository = blogResponseRepository;
+
+            _htmlencoder = htmlencoder;
         }
 
         public IActionResult Index()
         {
-            return View(_blogEntryRepository.GetTopBlogEntries());
+            List<BlogEntry> blogs = _blogEntryRepository.GetTopBlogEntries();
+            foreach (BlogEntry blog in blogs)
+            {
+                foreach (BlogResponse blogcont in blog.Responses)
+                {
+                    blogcont.Contents = _htmlencoder.Encode(blogcont.Contents);
+                }
+            }
+
+            return View(blogs);
         }
 
         [HttpGet("{entryId}")]
