@@ -26,7 +26,7 @@ namespace WebGoatCore
 
             var dic = new Dictionary<string, string>
             {
-                {Constants.WEBGOAT_ROOT, execDirectory},
+                {Constants.WEBGOAT_ROOT, Path.Combine(execDirectory, "wwwroot")},
             };
             builder.AddInMemoryCollection(dic);
             builder.AddConfiguration(configuration);
@@ -106,6 +106,14 @@ namespace WebGoatCore
             services.AddScoped<SupplierRepository>();
             services.AddScoped<OrderRepository>();
             services.AddScoped<CategoryRepository>();
+
+            // Set configurations for backward compatibility
+            // https://learn.microsoft.com/en-us/aspnet/core/security/authentication/identity-configuration?view=aspnetcore-3.1
+            services.Configure<PasswordHasherOptions>(option =>
+            {
+                option.CompatibilityMode = PasswordHasherCompatibilityMode.IdentityV2;
+                option.IterationCount = 5;
+            });
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -118,6 +126,7 @@ namespace WebGoatCore
             {
                 app.UseExceptionHandler("/Home/Error");
             }
+
             app.UseStaticFiles(new StaticFileOptions
             {
                 ServeUnknownFileTypes = true

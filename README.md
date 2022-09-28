@@ -85,8 +85,6 @@ dotnet ./app/WebGoatCore.dll --urls=http://localhost:5000
 ```
 
 The the WebGoat.NETCore website will be accessible at the URL specified with the `--urls` parameter: http://localhost:5000.
-<<<<<<< HEAD
-
 
 ## Known issues:
 
@@ -118,4 +116,6 @@ The the WebGoat.NETCore website will be accessible at the URL specified with the
 - Replaced SQL Server Local DB with SQLite database.
 - Added support for running WebGoat in a Linux Docker container.
 - Improved formatting of prices (rounding + removed $ character for consistency)
+
+=======
 
