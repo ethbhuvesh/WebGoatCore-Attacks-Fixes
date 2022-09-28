@@ -72,13 +72,22 @@ namespace WebGoatCore.Controllers
 
                 var file_name = Path.GetFileName(FormFile.FileName);
 
+
                 path = path + "\\..\\wwwroot\\upload\\" + file_name;
 
-                using (var fileStream = new FileStream(path, FileMode.Create))
+                if((Path.GetExtension(file_name)==".txt" || Path.GetExtension(file_name)==".pdf") && (FormFile.ContentType=="text/plain" || FormFile.ContentType=="application/pdf"))
                 {
-                    await FormFile.CopyToAsync(fileStream);
+                    using (var fileStream = new FileStream(path, FileMode.Create))
+                    {
+                        await FormFile.CopyToAsync(fileStream);
+                    }
+                    ViewBag.Message = $"File {file_name} Uploaded Successfully";
                 }
-                ViewBag.Message = $"File {file_name} Uploaded Successfully";
+                else
+                {
+                    ViewBag.Message = $"Can not upload {file_name}. Only .txt and .pdf is permitted.";
+                }
+                
                 return View("About");
             }
             catch (Exception ex)
