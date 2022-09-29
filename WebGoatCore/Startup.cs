@@ -26,7 +26,7 @@ namespace WebGoatCore
 
             var dic = new Dictionary<string, string>
             {
-                {Constants.WEBGOAT_ROOT, Path.Combine(execDirectory, "wwwroot")},
+                {Constants.WEBGOAT_ROOT, execDirectory},
             };
             builder.AddInMemoryCollection(dic);
             builder.AddConfiguration(configuration);
