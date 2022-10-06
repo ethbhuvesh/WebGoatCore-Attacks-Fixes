@@ -114,8 +114,8 @@ namespace WebGoatCore
             // https://learn.microsoft.com/en-us/aspnet/core/security/authentication/identity-configuration?view=aspnetcore-3.1
             services.Configure<PasswordHasherOptions>(option =>
             {
-                option.CompatibilityMode = PasswordHasherCompatibilityMode.IdentityV2;
-                option.IterationCount = 5;
+                option.CompatibilityMode = PasswordHasherCompatibilityMode.IdentityV3;
+                option.IterationCount = 100000;
             });
 
         }
