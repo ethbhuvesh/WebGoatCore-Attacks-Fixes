@@ -1,6 +1,9 @@
 ﻿using Konscious.Security.Cryptography;
 using Microsoft.AspNetCore.Identity;
 using System;
+using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace WebGoatCore.Utils
 {
@@ -45,6 +48,7 @@ namespace WebGoatCore.Utils
 
         private static byte[] HashPassword(string password)
         {
+
             /*
              * TODO:
              * 
@@ -56,11 +60,20 @@ namespace WebGoatCore.Utils
              * Hint:
              *  For copying bytes in 4th step, you can use: Buffer.BlockCopy(Array src, int srcOffset, Array dst, int dstOffset, int count);
              */
-            
+            byte[] saltBuff=CreateSalt();
+
+            byte[] passBuff=Encoding.UTF8.GetBytes(password);
+
+            var hashPass=GenerateArgon2Hash(passBuff, saltBuff);
+
+            byte[] outputBytes = new byte[saltSize + hashPass.Length];
+            Buffer.BlockCopy(saltBuff, 0, outputBytes, 0, saltSize);
+            Buffer.BlockCopy(hashPass, 0, outputBytes, saltSize, hashPass.Length);
+
             // This is a sample code. Update it as you see fit.
 
             // Final array that contains the salt + password hash bytes
-            byte[] outputBytes = new byte[1];
+            //byte[] outputBytes = new byte[1];
 
             // Return the final bytes
             return outputBytes;
@@ -85,13 +98,34 @@ namespace WebGoatCore.Utils
                  * For secure comparison of bytes, you can checkout https://learn.microsoft.com/en-us/dotnet/api/system.security.cryptography.cryptographicoperations?view=netcore-3.1
                  */
 
+                byte[] decodedHashedpassArr=Convert.FromBase64String(hashedPassword);
+
+                //byte[] salt = new byte[saltSize];
+                //Array.Copy(decodedHashedpassArr, 0, salt, 0, saltSize);
+                byte[] salt = decodedHashedpassArr.Skip(0).Take(saltSize).ToArray();
+
+                //byte[] expectedSubkey = new byte[Buffer.ByteLength(decodedHashedpassArr)-saltSize];
+                //Array.Copy(decodedHashedpassArr, saltSize, expectedSubkey, 0, Buffer.ByteLength(decodedHashedpassArr) - saltSize);
+                byte[] expectedSubkey = decodedHashedpassArr.Skip(saltSize).Take(Buffer.ByteLength(decodedHashedpassArr) - saltSize).ToArray();
+
+
+
+                byte[] recvdPass = Encoding.UTF8.GetBytes(providedPassword);
+
+
+                byte[] actualSubkey = GenerateArgon2Hash(recvdPass, salt);
+
+
+
+
+
                 // This is a sample code. Update it as you see fit.
 
                 // Get the Password Length and read from the offset
-                byte[] expectedSubkey = new byte[1];
+                //byte[] expectedSubkey = new byte[1];
 
                 // Convert the password to bytes and then perform hashing
-                byte[] actualSubkey = new byte[1];
+                //byte[] actualSubkey = new byte[1];
 
                 // Perform the comparison
                 return ByteArraysEqual(actualSubkey, expectedSubkey);
@@ -109,14 +143,14 @@ namespace WebGoatCore.Utils
         private static byte[] GenerateArgon2Hash(byte[] password, byte[] salt)
         {
             // Four Cores
-            int degreeOfParallelism = 8;
+            int degreeOfParallelism = 4; //2 cores
 
             // TODO: This should have a better count. Maybe > 3?
-            int iterations = 0;
+            int iterations = 256; //256 iterations
 
             // TODO: Must use a bigger memory size
             // Currently set to 1 MB
-            int memorySize = 1024 * 1;
+            int memorySize = 1024 * 2; //2MB used
 
             var argon2 = new Argon2id(password)
             {
@@ -136,7 +170,11 @@ namespace WebGoatCore.Utils
         private static byte[] CreateSalt()
         {
             var buffer = new byte[saltSize];
-            
+
+         
+            var rng = RandomNumberGenerator.Create();
+            rng.GetBytes(buffer);
+
             // TODO: Generate random bytes which fill the `buffer` array
 
             return buffer;
