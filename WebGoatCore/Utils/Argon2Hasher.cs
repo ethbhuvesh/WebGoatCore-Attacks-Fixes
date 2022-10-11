@@ -128,12 +128,17 @@ namespace WebGoatCore.Utils
                 //byte[] actualSubkey = new byte[1];
 
                 // Perform the comparison
-                return ByteArraysEqual(actualSubkey, expectedSubkey);
+                return CryptographicOperations.FixedTimeEquals(actualSubkey, expectedSubkey);
             }
             catch
             {
                 return false;
             }
+        }
+
+        private static void FixedTimeEquals(byte[] actualSubkey, byte[] expectedSubkey)
+        {
+            throw new NotImplementedException();
         }
 
         /*
@@ -150,7 +155,7 @@ namespace WebGoatCore.Utils
 
             // TODO: Must use a bigger memory size
             // Currently set to 1 MB
-            int memorySize = 1024 * 2; //2MB used
+            int memorySize = 1024 * 1024; //1024MB used
 
             var argon2 = new Argon2id(password)
             {
