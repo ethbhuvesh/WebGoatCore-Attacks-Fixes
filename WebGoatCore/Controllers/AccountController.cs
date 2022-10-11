@@ -4,6 +4,11 @@ using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using WebGoatCore.ViewModels;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Logging;
+using System.IO;
+using WebGoatCore.Models;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Configuration;
 
 namespace WebGoatCore.Controllers
 {
@@ -13,12 +18,16 @@ namespace WebGoatCore.Controllers
         private readonly UserManager<IdentityUser> _userManager;
         private readonly SignInManager<IdentityUser> _signInManager;
         private readonly CustomerRepository _customerRepository;
+        private readonly string _resourcePath;
+        private readonly ILogger _logger;
 
-        public AccountController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, CustomerRepository customerRepository)
+        public AccountController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, CustomerRepository customerRepository, ILogger<AccountController> logger, IConfiguration configuration, IHostEnvironment hostEnvironment)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _customerRepository = customerRepository;
+            _logger = logger;
+            _resourcePath = configuration.GetValue(Constants.WEBGOAT_ROOT, hostEnvironment.ContentRootPath);
         }
 
         [HttpGet]
@@ -40,7 +49,10 @@ namespace WebGoatCore.Controllers
                 return View(model);
             }
 
-            var result = await _signInManager.PasswordSignInAsync(model.Username, model.Password, model.RememberMe, lockoutOnFailure: false);
+            string message = $"Sign in attempt by user {model.Username} with password {model.Password}";
+            _logger.LogInformation(message);
+
+            var result = await _signInManager.PasswordSignInAsync(model.Username, model.Password, model.RememberMe, lockoutOnFailure: true);
 
             if (result.Succeeded)
             {
@@ -56,7 +68,9 @@ namespace WebGoatCore.Controllers
 
             if (result.IsLockedOut)
             {
-                return RedirectToPage("./Lockout");
+                message = $"The user {model.Username} account is locked.";
+                _logger.LogWarning(message);
+                return View("Lockout");
             }
             else
             {
@@ -64,6 +78,9 @@ namespace WebGoatCore.Controllers
                 return View(model);
             }
         }
+
+        [HttpGet]
+        public IActionResult Lockout() => View();
 
         public async Task<IActionResult> Logout()
         {
@@ -90,12 +107,18 @@ namespace WebGoatCore.Controllers
                     Email = model.Email
                 };
 
+                string message = $"Attempting to Register a user {model.Username}";
+                _logger.LogInformation(message);
+
                 var result = await _userManager.CreateAsync(user, model.Password);
                 if (result.Succeeded)
                 {
                     _customerRepository.CreateCustomer(model.CompanyName, model.Username, model.Address, model.City, model.Region, model.PostalCode, model.Country);
 
                     await _signInManager.SignInAsync(user, isPersistent: false);
+                    message = $"Successfully registered user {model.Username} with Address: {model.Address}, City: {model.City}, Region: {model.Region}, Postal Code: {model.PostalCode}, Country: {model.Country}";
+                    _logger.LogInformation(message);
+
                     return RedirectToAction("Index", "Home");
                 }
 
@@ -129,6 +152,25 @@ namespace WebGoatCore.Controllers
             {
                 ModelState.AddModelError(string.Empty, "We don't recognize your customer Id. Please log in and try again.");
                 return View(new ChangeAccountInfoViewModel());
+            }
+
+            if (Utils.Debugger.IsDebug)
+            {
+                _logger.LogDebug($"Testing user {customer.ContactName} information");
+                var creditCard = GetCreditCardForUser();
+                _logger.LogDebug($"Successfully retrieved credit card {creditCard.Number} with expiry {creditCard.Expiry}");
+
+                return View(new ChangeAccountInfoViewModel()
+                {
+                    CompanyName = customer.CompanyName,
+                    ContactTitle = customer.ContactTitle,
+                    Address = customer.Address,
+                    City = customer.City,
+                    Region = customer.Region,
+                    PostalCode = customer.PostalCode,
+                    Country = customer.Country,
+                    Information = $"Test information. The user has credit card: {creditCard.Number} with expiry {creditCard.Expiry}",
+                });
             }
 
             return View(new ChangeAccountInfoViewModel()
@@ -245,6 +287,76 @@ namespace WebGoatCore.Controllers
 
             model.CreatedUser = true;
             return View(model);
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult ForgotPassword() => View(new ForgotPasswordViewModel());
+
+        [HttpPost]
+        [AllowAnonymous]
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
+        {
+            if (!ModelState.IsValid)
+                return View(model);
+
+            var user = await _userManager.FindByNameAsync(model.Username);
+            if (user == null)
+            {
+                ModelState.AddModelError(string.Empty, "We don't recognize your username. Please try again.");
+                return View(model);
+            }
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var callback = Url.Action(nameof(ResetPassword), "Account", new { token, username = user.UserName }, Request.Scheme);
+            ViewBag.CallbackUrl = callback;
+            return View("ForgotPasswordConfirmation");
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult ResetPassword(string token, string username)
+        {
+            var model = new ResetPasswordModel { Token = token, Username = username };
+            return View(model);
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        public async Task<IActionResult> ResetPassword(ResetPasswordModel resetPasswordModel)
+        {
+            if (!ModelState.IsValid)
+                return View(resetPasswordModel);
+            var user = await _userManager.FindByNameAsync(resetPasswordModel.Username);
+            if (user == null)
+            {
+                ModelState.AddModelError(string.Empty, "We don't recognize your username. Please try again.");
+                return View(resetPasswordModel);
+            }
+            var resetPassResult = await _userManager.ResetPasswordAsync(user, resetPasswordModel.Token, resetPasswordModel.Password);
+            if (!resetPassResult.Succeeded)
+            {
+                foreach (var error in resetPassResult.Errors)
+                {
+                    ModelState.TryAddModelError(error.Code, error.Description);
+                }
+                return View();
+            }
+            return RedirectToAction(nameof(ResetPasswordConfirmation));
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult ResetPasswordConfirmation() => View();
+
+        private CreditCard GetCreditCardForUser()
+        {
+            var creditCard = new CreditCard()
+            {
+                Filename = Path.Combine(_resourcePath, "StoredCreditCards.xml"),
+                Username = _userManager.GetUserName(User)
+            };
+            creditCard.GetCardForUser();
+            return creditCard;
         }
     }
 }
