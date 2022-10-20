@@ -131,6 +131,8 @@ namespace WebGoatCore
                 ServeUnknownFileTypes = true
             });
 
+            app.UseHttpsRedirection();
+
             app.UseRouting();
 
             app.UseAuthentication();
