@@ -58,6 +58,10 @@ namespace WebGoatCore
 
             services.Configure<IdentityOptions>(options =>
             {
+
+
+                options.SignIn.RequireConfirmedEmail = true;
+
                 // Password settings.
                 options.Password.RequireDigit = false;
                 options.Password.RequireLowercase = false;

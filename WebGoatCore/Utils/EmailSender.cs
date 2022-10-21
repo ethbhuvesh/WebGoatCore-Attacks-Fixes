@@ -36,5 +36,35 @@ namespace WebGoatCore
                 throw;
             }
         }
+
+        public bool SendEmail(string userEmail, string confirmationLink)
+        {
+            MailMessage mailMessage = new MailMessage();
+            mailMessage.From = new MailAddress("pitifulbrad9876@gmail.com");
+            mailMessage.To.Add(new MailAddress(userEmail));
+
+            mailMessage.Subject = "Confirm your email";
+            mailMessage.IsBodyHtml = true;
+            mailMessage.Body = confirmationLink;
+
+            SmtpClient client = new SmtpClient();
+            client.Credentials = new System.Net.NetworkCredential("pitifulbrad9876@gmail.com", "ABcd1234$$");
+            client.Host = "smtp.gmail.com";
+            client.Port = 465;
+            client.EnableSsl = true;
+
+            try
+            {
+                client.Send(mailMessage);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            return false;
+
+        }
+
     }
 }

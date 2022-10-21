@@ -45,6 +45,8 @@ namespace WebGoatCore.Controllers
 
             if (result.Succeeded)
             {
+
+
                 if (model.ReturnUrl != null)
                 {
                     return Redirect(model.ReturnUrl);
@@ -97,10 +99,20 @@ namespace WebGoatCore.Controllers
                 var result = await _userManager.CreateAsync(user, model.Password);
                 if (result.Succeeded)
                 {
-                    _customerRepository.CreateCustomer(model.CompanyName, model.Username, model.Address, model.City, model.Region, model.PostalCode, model.Country);
 
-                    await _signInManager.SignInAsync(user, isPersistent: false);
-                    return RedirectToAction("Index", "Home");
+                    var token = _userManager.GenerateEmailConfirmationTokenAsync(user);
+                    var confirmationLink = Url.Action("ConfirmEmail", "Email", new { token, email = user.Email }, Request.Scheme);
+                    EmailSender emailSender = new EmailSender();
+                    bool emailResponse = emailSender.SendEmail(user.Email, confirmationLink);
+
+                    if (emailResponse)
+                    {
+                        _customerRepository.CreateCustomer(model.CompanyName, model.Username, model.Address, model.City, model.Region, model.PostalCode, model.Country);
+
+                        await _signInManager.SignInAsync(user, isPersistent: false);
+                        return RedirectToAction("Index", "Home");
+                    }
+                    
                 }
 
                 foreach (var error in result.Errors)
