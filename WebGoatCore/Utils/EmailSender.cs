@@ -39,19 +39,21 @@ namespace WebGoatCore
 
         public bool SendEmail(string userEmail, string confirmationLink)
         {
+            SmtpClient client = new SmtpClient("smtp.office365.com")
+            {
+                Port = 587,
+                EnableSsl = true,
+                UseDefaultCredentials = true,
+                Credentials = new System.Net.NetworkCredential("enter outlook email", "enter password", "outlook.com"),
+                DeliveryMethod = SmtpDeliveryMethod.Network
+            };
+
             MailMessage mailMessage = new MailMessage();
-            mailMessage.From = new MailAddress("pitifulbrad9876@gmail.com");
             mailMessage.To.Add(new MailAddress(userEmail));
-
+            mailMessage.From = new MailAddress("enter outlook email");
             mailMessage.Subject = "Confirm your email";
-            mailMessage.IsBodyHtml = true;
             mailMessage.Body = confirmationLink;
-
-            SmtpClient client = new SmtpClient();
-            client.Credentials = new System.Net.NetworkCredential("pitifulbrad9876@gmail.com", "ABcd1234$$");
-            client.Host = "smtp.gmail.com";
-            client.Port = 465;
-            client.EnableSsl = true;
+            mailMessage.IsBodyHtml = true;
 
             try
             {

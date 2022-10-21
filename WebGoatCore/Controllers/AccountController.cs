@@ -100,7 +100,7 @@ namespace WebGoatCore.Controllers
                 if (result.Succeeded)
                 {
 
-                    var token = _userManager.GenerateEmailConfirmationTokenAsync(user);
+                    var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
                     var confirmationLink = Url.Action("ConfirmEmail", "Email", new { token, email = user.Email }, Request.Scheme);
                     EmailSender emailSender = new EmailSender();
                     bool emailResponse = emailSender.SendEmail(user.Email, confirmationLink);
