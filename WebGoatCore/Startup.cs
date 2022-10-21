@@ -13,6 +13,7 @@ using System.IO;
 using System.Reflection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.AspNetCore.Http;
+using WebGoatCore.Utils;
 
 namespace WebGoatCore
 {
@@ -43,6 +44,8 @@ namespace WebGoatCore
 
         public void ConfigureServices(IServiceCollection services)
         {
+
+
             services.AddControllersWithViews()
                 .AddRazorRuntimeCompilation();
 
@@ -51,10 +54,15 @@ namespace WebGoatCore
                     .UseLazyLoadingProxies(),
                 ServiceLifetime.Scoped);
 
-            services.AddDefaultIdentity<IdentityUser>()
+            /*services.AddDefaultIdentity<IdentityUser>()
                 .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<NorthwindContext>()
-                .AddDefaultTokenProviders();
+                .AddDefaultTokenProviders();*/
+
+            services.AddIdentity<IdentityUser, IdentityRole>()
+                .AddEntityFrameworkStores<NorthwindContext>()
+                .AddDefaultTokenProviders()
+                .AddPasswordValidator<CustomPasswordValidator<IdentityUser>>();
 
             services.Configure<IdentityOptions>(options =>
             {
@@ -63,12 +71,12 @@ namespace WebGoatCore
                 options.SignIn.RequireConfirmedEmail = true;
 
                 // Password settings.
-                options.Password.RequireDigit = false;
-                options.Password.RequireLowercase = false;
-                options.Password.RequireNonAlphanumeric = false;
-                options.Password.RequireUppercase = false;
-                options.Password.RequiredLength = 2;
-                options.Password.RequiredUniqueChars = 0;
+                options.Password.RequireDigit = true;
+                options.Password.RequireLowercase = true;
+                options.Password.RequireNonAlphanumeric = true;
+                options.Password.RequireUppercase = true;
+                options.Password.RequiredLength = 12;
+                options.Password.RequiredUniqueChars = 5;
 
                 // Lockout settings.
                 options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
