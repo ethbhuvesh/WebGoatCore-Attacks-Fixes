@@ -44,13 +44,13 @@ namespace WebGoatCore
                 Port = 587,
                 EnableSsl = true,
                 UseDefaultCredentials = true,
-                Credentials = new System.Net.NetworkCredential("enter outlook email", "enter password", "outlook.com"),
+                Credentials = new System.Net.NetworkCredential("enter email", "password here", "outlook.com"),
                 DeliveryMethod = SmtpDeliveryMethod.Network
             };
 
             MailMessage mailMessage = new MailMessage();
             mailMessage.To.Add(new MailAddress(userEmail));
-            mailMessage.From = new MailAddress("enter outlook email");
+            mailMessage.From = new MailAddress("enter email");
             mailMessage.Subject = "Confirm your email";
             mailMessage.Body = confirmationLink;
             mailMessage.IsBodyHtml = true;

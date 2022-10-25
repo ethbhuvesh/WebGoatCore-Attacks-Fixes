@@ -107,12 +107,24 @@ namespace WebGoatCore.Controllers
 
                     if (emailResponse)
                     {
-                        _customerRepository.CreateCustomer(model.CompanyName, model.Username, model.Address, model.City, model.Region, model.PostalCode, model.Country);
+                        //_customerRepository.CreateCustomer(model.CompanyName, model.Username, model.Address, model.City, model.Region, model.PostalCode, model.Country);
 
-                        await _signInManager.SignInAsync(user, isPersistent: false);
+                        //await _signInManager.SignInAsync(user, isPersistent: false);
                         return RedirectToAction("Index", "Home");
                     }
+
                     
+                }
+                bool emailStatus = await _userManager.IsEmailConfirmedAsync(user);
+                if (emailStatus)
+                {
+                    _customerRepository.CreateCustomer(model.CompanyName, model.Username, model.Address, model.City, model.Region, model.PostalCode, model.Country);
+
+                    await _signInManager.SignInAsync(user, isPersistent: false);
+                }
+                else
+                {
+                    ModelState.AddModelError(string.Empty, "Please verify the user");
                 }
 
                 foreach (var error in result.Errors)
