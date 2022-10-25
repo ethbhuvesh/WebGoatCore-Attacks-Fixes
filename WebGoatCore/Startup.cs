@@ -62,11 +62,13 @@ namespace WebGoatCore
             services.AddIdentity<IdentityUser, IdentityRole>()
                 .AddEntityFrameworkStores<NorthwindContext>()
                 .AddDefaultTokenProviders()
+                .AddTokenProvider<GoatTotpSecurityStampBasedTokenProvider<IdentityUser>>("GoatTotpSecurityStampBasedTokenProvider")
                 .AddPasswordValidator<CustomPasswordValidator<IdentityUser>>();
 
             services.Configure<IdentityOptions>(options =>
             {
-
+                // Token options provider
+                options.Tokens.PasswordResetTokenProvider = typeof(GoatTotpSecurityStampBasedTokenProvider<IdentityUser>).Name.Split("`")[0];
 
                 options.SignIn.RequireConfirmedEmail = true;
 

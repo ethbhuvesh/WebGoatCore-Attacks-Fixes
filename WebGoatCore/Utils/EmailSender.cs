@@ -44,14 +44,14 @@ namespace WebGoatCore
                 Port = 587,
                 EnableSsl = true,
                 UseDefaultCredentials = true,
-                Credentials = new System.Net.NetworkCredential("enter outlook email", "enter password", "outlook.com"),
+                Credentials = new System.Net.NetworkCredential("<from_email_id>", "<from_email_id_password>", "outlook.com"),
                 DeliveryMethod = SmtpDeliveryMethod.Network
             };
 
             MailMessage mailMessage = new MailMessage();
             mailMessage.To.Add(new MailAddress(userEmail));
-            mailMessage.From = new MailAddress("enter outlook email");
-            mailMessage.Subject = "Confirm your email";
+            mailMessage.From = new MailAddress("<from_email_id>");
+            mailMessage.Subject = "Password Reset Token";
             mailMessage.Body = confirmationLink;
             mailMessage.IsBodyHtml = true;
 

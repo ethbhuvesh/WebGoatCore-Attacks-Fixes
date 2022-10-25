@@ -100,18 +100,12 @@ namespace WebGoatCore.Controllers
                 if (result.Succeeded)
                 {
 
-                    var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                    var confirmationLink = Url.Action("ConfirmEmail", "Email", new { token, email = user.Email }, Request.Scheme);
-                    EmailSender emailSender = new EmailSender();
-                    bool emailResponse = emailSender.SendEmail(user.Email, confirmationLink);
+                 
+                    _customerRepository.CreateCustomer(model.CompanyName, model.Username, model.Address, model.City, model.Region, model.PostalCode, model.Country);
 
-                    if (emailResponse)
-                    {
-                        _customerRepository.CreateCustomer(model.CompanyName, model.Username, model.Address, model.City, model.Region, model.PostalCode, model.Country);
-
-                        await _signInManager.SignInAsync(user, isPersistent: false);
-                        return RedirectToAction("Index", "Home");
-                    }
+                    await _signInManager.SignInAsync(user, isPersistent: false);
+                    return RedirectToAction("Index", "Home");
+                    
                     
                 }
 
@@ -277,13 +271,23 @@ namespace WebGoatCore.Controllers
             var user = await _userManager.FindByNameAsync(model.Username);
             if (user == null)
             {
-                ModelState.AddModelError(string.Empty, "We don't recognize your username. Please try again.");
+                ModelState.AddModelError(string.Empty, "Mail sent if you are a registered user. Forgot password here");
                 return View(model);
             }
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
             var callback = Url.Action(nameof(ResetPassword), "Account", new { token, username = user.UserName }, Request.Scheme);
-            ViewBag.CallbackUrl = callback;
-            return View("ForgotPasswordConfirmation");
+            EmailSender emailSender = new EmailSender();
+            bool mailSent = emailSender.SendEmail(user.Email, callback);
+
+            //ViewBag.CallbackUrl = callback;
+            if (mailSent)
+            {
+                return View("ForgotPasswordConfirmation");
+            }
+            else
+            {
+                return View("Error");
+            }
         }
 
         [HttpGet]
@@ -301,12 +305,16 @@ namespace WebGoatCore.Controllers
             if (!ModelState.IsValid)
                 return View(resetPasswordModel);
             var user = await _userManager.FindByNameAsync(resetPasswordModel.Username);
-            if (user == null)
-            {
-                ModelState.AddModelError(string.Empty, "We don't recognize your username. Please try again.");
-                return View(resetPasswordModel);
-            }
+             
+             if (user == null)
+             {
+                 ModelState.AddModelError(string.Empty, "Reset password model here");
+                 return View(resetPasswordModel);
+             }
+            
+
             var resetPassResult = await _userManager.ResetPasswordAsync(user, resetPasswordModel.Token, resetPasswordModel.Password);
+
             if (!resetPassResult.Succeeded)
             {
                 foreach (var error in resetPassResult.Errors)
@@ -314,7 +322,11 @@ namespace WebGoatCore.Controllers
                     ModelState.TryAddModelError(error.Code, error.Description);
                 }
                 return View();
+               
+
             }
+            
+            
             return RedirectToAction(nameof(ResetPasswordConfirmation));
         }
 
