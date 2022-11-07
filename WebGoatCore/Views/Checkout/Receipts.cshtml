@@ -16,8 +16,12 @@
                     <th>Total</th>
                     <th>Trace package</th>
                 </tr>
+
                 @foreach (var order in Model)
                 {
+                    <form action="Receipt" method="post">
+                        @Html.AntiForgeryToken()
+
                     <tr>
                         <td>
                             <a asp-action="Receipt" asp-route-id=@order.OrderId>@order.OrderId</a>
@@ -26,13 +30,17 @@
                         <td>@order.Total</td>
                         @if (order.Shipment != null)
                         {
+                            <form action="PackageTracking" method="post">
+                                @Html.AntiForgeryToken()
                             <td>
-                                <a asp-action="PackageTracking" 
-                                    asp-route-carrier="@order.Shipment.Shipper.CompanyName"
-                                    asp-route-trackingNumber="@order.Shipment.TrackingNumber">Trace</a>
+                                <a asp-action="PackageTracking"
+                                   asp-route-carrier="@order.Shipment.Shipper.CompanyName"
+                                   asp-route-trackingNumber="@order.Shipment.TrackingNumber">Trace</a>
                             </td>
-                        }
-                    </tr>
+                            </form>
+                            }
+                        </tr>
+                    </form>
                 }
             </tbody>
         </table>
