@@ -133,8 +133,11 @@ namespace WebGoatCore.Controllers
                 creditCard.SaveCardForUser();
             }
 
+            Random rnd = new Random();
+
             var order = new Order
             {
+                OrderId = rnd.Next(),
                 ShipVia = model.ShippingMethod,
                 ShipName = model.ShipTarget,
                 ShipAddress = model.Address,
