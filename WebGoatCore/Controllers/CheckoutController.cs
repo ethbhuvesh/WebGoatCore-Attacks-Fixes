@@ -190,14 +190,31 @@ namespace WebGoatCore.Controllers
             try
             {
                 order = _orderRepository.GetOrderById(orderId.Value);
+
             }
             catch (InvalidOperationException)
             {
                 ModelState.AddModelError(string.Empty, string.Format("Order {0} was not found.", orderId));
                 return View();
             }
+            
 
-            return View(order);
+            if (order.Customer.ContactName == _userManager.GetUserName(User))
+
+            {
+                return View(order);
+            }
+
+            else
+            {
+                return View("Failure");
+            }
+                
+        }
+
+        public IActionResult Failure()
+        {
+            return View();
         }
 
         [HttpGet]
@@ -209,8 +226,16 @@ namespace WebGoatCore.Controllers
             {
                 return View();
             }
+            if(customer.ContactName==_userManager.GetUserName(User))
+            {
+                return View(_orderRepository.GetAllOrdersByCustomerId(customer.CustomerId));
 
-            return View(_orderRepository.GetAllOrdersByCustomerId(customer.CustomerId));
+            }
+
+            else
+            {
+                return View("Failure");
+            }
         }
 
         [HttpGet]
