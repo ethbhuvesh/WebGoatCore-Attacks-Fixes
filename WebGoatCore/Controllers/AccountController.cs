@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using WebGoatCore.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using WebGoatCore.Models;
+using WebGoatCore.Utils;
+using System;
 
 namespace WebGoatCore.Controllers
 {
@@ -52,6 +54,8 @@ namespace WebGoatCore.Controllers
                 else
                 {
                     return RedirectToAction("Index", "Home");
+                    
+                    
                 }
             }
 
@@ -72,6 +76,7 @@ namespace WebGoatCore.Controllers
         public async Task<IActionResult> Logout()
         {
             await _signInManager.SignOutAsync();
+            
             return RedirectToAction("Index", "Home");
         }
 

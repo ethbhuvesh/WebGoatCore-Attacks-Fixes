@@ -13,6 +13,8 @@ using System.IO;
 using System.Reflection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using WebGoatCore.Utils;
 
 namespace WebGoatCore
 {
@@ -81,12 +83,20 @@ namespace WebGoatCore
             services.ConfigureApplicationCookie(options =>
             {
                 // Cookie settings
+                //options.Cookie.Name = "session";
                 options.Cookie.HttpOnly = true;
                 options.ExpireTimeSpan = TimeSpan.FromMinutes(5);
 
-                options.LoginPath = "/Account/Login";
+                //options.LoginPath = "/Account/Login";
                 options.AccessDeniedPath = "/Account/AccessDenied";
                 options.SlidingExpiration = true;
+
+
+                options.LoginPath = "/Account/Login";
+                options.LogoutPath = "/Account/Logout";
+                options.ReturnUrlParameter = "/Account/Login";
+                options.SessionStore = new MemoryCacheStore();
+                
             });
 
             services.AddDistributedMemoryCache();
