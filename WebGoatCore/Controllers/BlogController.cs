@@ -33,49 +33,67 @@ namespace WebGoatCore.Controllers
         public IActionResult Reply(int entryId, string contents)
         {
             var userName = User.Identity.Name ?? "Anonymous";
-            CalculateSpace(contents);
-
-            var response = new BlogResponse()
+            if(CalculateSpace(contents)==true)
             {
-                Author = userName,
-                Contents = contents,
-                BlogEntryId = entryId,
-                ResponseDate = DateTime.Now
-            };
-            _blogResponseRepository.CreateBlogResponse(response);
-
-            return RedirectToAction("Index");
+                var response = new BlogResponse()
+                {
+                    Author = userName,
+                    Contents = contents,
+                    BlogEntryId = entryId,
+                    ResponseDate = DateTime.Now
+                };
+                _blogResponseRepository.CreateBlogResponse(response);
+                return RedirectToAction("Index");
+            }
+            else
+            {
+                
+                return RedirectToAction("Index");
+                
+            }
+          
         }
 
-        public unsafe void CalculateSpace(string contents)
+        public unsafe bool CalculateSpace(string? contents)
         {
-            string msg = contents;
-            const int INPUT_LEN = 256;
-            char[] fixedChar = new char[INPUT_LEN];
-
-            for (int i = 0; i < fixedChar.Length; i++)
-                fixedChar[i] = '\0';
-
-            fixed (char* revLine = fixedChar)
+            if(contents!=null)
             {
-                if(contents.Length <= INPUT_LEN)
+                string msg = contents;
+                const int INPUT_LEN = 256;
+                char[] fixedChar = new char[INPUT_LEN];
+
+                for (int i = 0; i < fixedChar.Length; i++)
+                    fixedChar[i] = '\0';
+
+                fixed (char* revLine = fixedChar)
                 {
-                    int lineLen = contents.Length;
+                    if (contents.Length <= INPUT_LEN)
+                    {
+                        int lineLen = contents.Length;
 
-                    for (int i = 0; i < lineLen; i++)
-                        *(revLine + i) = contents[lineLen - i - 1];
+                        for (int i = 0; i < lineLen; i++)
+                            *(revLine + i) = contents[lineLen - i - 1];
 
-                    char* revCur = revLine;
+                        char* revCur = revLine;
 
-                    string blogContents = string.Empty;
-                    while (*revCur != '\0')
-                        blogContents += (char)*revCur++;
+                        string blogContents = string.Empty;
+                        while (*revCur != '\0')
+                            blogContents += (char)*revCur++;
+                        return true;
+                    }
+                    else
+                    {
+
+                        return false;
+                    }
                 }
-                else
-                {
-                    ModelState.AddModelError(string.Empty, "Content Length too big.");
-                }
+                
             }
+            else
+            {
+                return false;
+            }
+            
         }
 
         [HttpGet]
