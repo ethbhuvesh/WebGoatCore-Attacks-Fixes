@@ -53,10 +53,14 @@ namespace WebGoatCore.Controllers
             {
                 if (model.ReturnUrl != null)
                 {
+                    string message1 = $"Sign in successful by user {model.Username}";
+                    _logger.LogInformation(message1);
                     return Redirect(model.ReturnUrl);
                 }
                 else
                 {
+                    string message1 = $"Sign in failed by user {model.Username}";
+                    _logger.LogInformation(message1);
                     return RedirectToAction("Index", "Home");
                 }
             }
@@ -79,6 +83,9 @@ namespace WebGoatCore.Controllers
 
         public async Task<IActionResult> Logout()
         {
+            string user=_userManager.GetUserName(User);
+            string message = $"{user} logged out";
+            _logger.LogWarning(message);
             await _signInManager.SignOutAsync();
             return RedirectToAction("Index", "Home");
         }
@@ -199,6 +206,9 @@ namespace WebGoatCore.Controllers
                 var result = await _userManager.ChangePasswordAsync(await _userManager.GetUserAsync(User), model.OldPassword, model.NewPassword);
                 if (result.Succeeded)
                 {
+                    
+                    string message = $"Successfully changed password for user {_userManager.GetUserName(User)}";
+                    _logger.LogInformation(message);
                     return View("ChangePasswordSuccess");
                 }
 
@@ -249,6 +259,11 @@ namespace WebGoatCore.Controllers
                             {
                                 ModelState.AddModelError(string.Empty, error.Description);
                             }
+                        }
+                        else
+                        {
+                            string message = $"Successfully changed roles to admin for user {user.UserName}";
+                            _logger.LogInformation(message);
                         }
                     }
                 }
@@ -317,6 +332,8 @@ namespace WebGoatCore.Controllers
                 }
                 return View();
             }
+            string message = $"Successfully performed password reset for user {user.UserName}";
+            _logger.LogInformation(message);
             return RedirectToAction(nameof(ResetPasswordConfirmation));
         }
 
