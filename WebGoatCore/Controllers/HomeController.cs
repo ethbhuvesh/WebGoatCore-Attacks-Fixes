@@ -93,7 +93,7 @@ namespace WebGoatCore.Controllers
                 }
 
                 // Check whether the content value is present or not
-                if (content != null && content.Length > 0)
+                if (content != null && content.Length >= 0)
                 {
                     // Verify whether the content has unicode characters or not
                     bool hasUnicode = System.Text.Encoding.UTF8.GetByteCount(content) != content.Length;
@@ -101,6 +101,10 @@ namespace WebGoatCore.Controllers
                     // Throw error if the contents of the file contains unicode characters.
                     if (hasUnicode == true)
                     {
+
+                        System.IO.File.Delete(path);
+                        Directory.Delete(tempFolderPath, true);
+
                         throw new InvalidDataException("The given brochure contains some invalid characters. Please remove them.");
                     }
 
