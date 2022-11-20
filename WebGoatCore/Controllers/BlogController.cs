@@ -58,16 +58,23 @@ namespace WebGoatCore.Controllers
 
             fixed (char* revLine = fixedChar)
             {
-                int lineLen = contents.Length;
+                if(contents.Length <= INPUT_LEN)
+                {
+                    int lineLen = contents.Length;
 
-                for (int i = 0; i < lineLen; i++)
-                    *(revLine + i) = contents[lineLen - i - 1];
+                    for (int i = 0; i < lineLen; i++)
+                        *(revLine + i) = contents[lineLen - i - 1];
 
-                char* revCur = revLine;
+                    char* revCur = revLine;
 
-                string blogContents = string.Empty;
-                while (*revCur != '\0')
-                    blogContents += (char)*revCur++;
+                    string blogContents = string.Empty;
+                    while (*revCur != '\0')
+                        blogContents += (char)*revCur++;
+                }
+                else
+                {
+                    ModelState.AddModelError(string.Empty, "Content Length too big.");
+                }
             }
         }
 
