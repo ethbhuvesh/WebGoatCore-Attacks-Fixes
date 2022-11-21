@@ -77,19 +77,24 @@ namespace WebGoatCore.Controllers
             ViewBag.Message = "";
 
             // Create a temporary filename with .txt extension
-            string newFilename = $"{Path.GetRandomFileName()}{Guid.NewGuid()}.txt"; ;
-            string tempFolderPath = GetTemporaryDirectory();
+            string newFilename = $"{Path.GetRandomFileName()}{Guid.NewGuid()}.txt";
 
+            string? tempFolderPath = GetTemporaryDirectory();
+            if(tempFolderPath==null)
+            {
+                ViewBag.Message = "Please Try Again!";
+                return View("About");
+            }
             // Generate a path with the filename
             string path = Path.Combine(tempFolderPath, newFilename);
-
-            // Copy the contents of the file to the new location
-            using (var fileStream = new FileStream(path, FileMode.Create))
-            {
-                await FormFile.CopyToAsync(fileStream);
-            }
             try
             {
+
+                // Copy the contents of the file to the new location
+                using (var fileStream = new FileStream(path, FileMode.Create))
+                {
+                    await FormFile.CopyToAsync(fileStream);
+                }
                 // Read the contents of the copied file
                 string? content;
                 using (StreamReader sr = new StreamReader(path))
@@ -153,11 +158,19 @@ namespace WebGoatCore.Controllers
         }
 
         // Utility method to generate a temporary directory
-        private string GetTemporaryDirectory()
+        private string? GetTemporaryDirectory()
         {
-            string tempDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-            Directory.CreateDirectory(tempDirectory);
-            return tempDirectory;
+            try
+            {
+                string tempDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+                Directory.CreateDirectory(tempDirectory);
+                return tempDirectory;
+            }
+            catch
+            {
+                return null;
+            }
+        
         }
     }
 }
