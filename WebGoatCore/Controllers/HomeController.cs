@@ -70,8 +70,7 @@ namespace WebGoatCore.Controllers
         public async Task<IActionResult> UploadFile(IFormFile FormFile)
         {
             ViewBag.Message = "";
-            try
-            {
+            
                 // Create a temporary filename with .txt extension
                 string newFilename = $"{Path.GetRandomFileName()}{Guid.NewGuid()}.txt"; ;
                 string tempFolderPath = GetTemporaryDirectory();
@@ -84,7 +83,8 @@ namespace WebGoatCore.Controllers
                 {
                     await FormFile.CopyToAsync(fileStream);
                 }
-
+            try
+            {
                 // Read the contents of the copied file
                 string? content;
                 using (StreamReader sr = new StreamReader(path))
@@ -102,25 +102,34 @@ namespace WebGoatCore.Controllers
                     if (hasUnicode == true)
                     {
 
-                        System.IO.File.Delete(path);
-                        Directory.Delete(tempFolderPath, true);
-
                         throw new InvalidDataException("The given brochure contains some invalid characters. Please remove them.");
                     }
 
                     // Clean up resources
-                    System.IO.File.Delete(path);
-                    Directory.Delete(tempFolderPath, true);
+                    
 
                     ViewBag.Message = "Successfully uploaded your feedback! Thank you!";
                 }
             }
-            catch (Exception ex)
+            catch(InvalidDataException ex1)
+            {
+                ViewBag.Message = $"The given brochure contains some invalid characters. Please remove them.";
+                string message = $"Error occurred while reading the file. {ex1.Message}";
+                _logger.LogError(ex1, message);
+            }
+            catch (Exception ex) 
             {
                 // InvalidDataException is intended to be caught here
                 string message = $"Error occurred while reading the file. {ex.Message}";
                 _logger.LogError(ex, message);
                 ViewBag.Message = $"File processing failed: {ex.Message}";
+                
+            }
+            finally
+            {
+                System.IO.File.Delete(path);
+                Directory.Delete(tempFolderPath, true);
+
             }
             return View("About");
         }
