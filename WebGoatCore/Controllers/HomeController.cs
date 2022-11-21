@@ -69,20 +69,25 @@ namespace WebGoatCore.Controllers
         [HttpPost("About")]
         public async Task<IActionResult> UploadFile(IFormFile FormFile)
         {
+            if(FormFile==null)
+            {
+                ViewBag.Message = "Please upload a file!";
+                return View("About");
+            }
             ViewBag.Message = "";
-            
-                // Create a temporary filename with .txt extension
-                string newFilename = $"{Path.GetRandomFileName()}{Guid.NewGuid()}.txt"; ;
-                string tempFolderPath = GetTemporaryDirectory();
 
-                // Generate a path with the filename
-                string path = Path.Combine(tempFolderPath, newFilename);
+            // Create a temporary filename with .txt extension
+            string newFilename = $"{Path.GetRandomFileName()}{Guid.NewGuid()}.txt"; ;
+            string tempFolderPath = GetTemporaryDirectory();
 
-                // Copy the contents of the file to the new location
-                using (var fileStream = new FileStream(path, FileMode.Create))
-                {
-                    await FormFile.CopyToAsync(fileStream);
-                }
+            // Generate a path with the filename
+            string path = Path.Combine(tempFolderPath, newFilename);
+
+            // Copy the contents of the file to the new location
+            using (var fileStream = new FileStream(path, FileMode.Create))
+            {
+                await FormFile.CopyToAsync(fileStream);
+            }
             try
             {
                 // Read the contents of the copied file
