@@ -4,8 +4,11 @@ using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using WebGoatCore.ViewModels;
 using Microsoft.AspNetCore.Authorization;
-using WebGoatCore.Models;
 using Microsoft.Extensions.Logging;
+using System.IO;
+using WebGoatCore.Models;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Configuration;
 
 namespace WebGoatCore.Controllers
 {
@@ -15,14 +18,16 @@ namespace WebGoatCore.Controllers
         private readonly UserManager<IdentityUser> _userManager;
         private readonly SignInManager<IdentityUser> _signInManager;
         private readonly CustomerRepository _customerRepository;
+        private readonly string _resourcePath;
         private readonly ILogger _logger;
 
-        public AccountController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, CustomerRepository customerRepository, ILogger<AccountController> logger)
+        public AccountController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, CustomerRepository customerRepository, ILogger<AccountController> logger, IConfiguration configuration, IHostEnvironment hostEnvironment)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _customerRepository = customerRepository;
             _logger = logger;
+            _resourcePath = configuration.GetValue(Constants.WEBGOAT_ROOT, hostEnvironment.ContentRootPath);
         }
 
         [HttpGet]
@@ -147,6 +152,25 @@ namespace WebGoatCore.Controllers
             {
                 ModelState.AddModelError(string.Empty, "We don't recognize your customer Id. Please log in and try again.");
                 return View(new ChangeAccountInfoViewModel());
+            }
+
+            if (Utils.Debugger.IsDebug)
+            {
+                _logger.LogDebug($"Testing user {customer.ContactName} information");
+                var creditCard = GetCreditCardForUser();
+                _logger.LogDebug($"Successfully retrieved credit card {creditCard.Number} with expiry {creditCard.Expiry}");
+
+                return View(new ChangeAccountInfoViewModel()
+                {
+                    CompanyName = customer.CompanyName,
+                    ContactTitle = customer.ContactTitle,
+                    Address = customer.Address,
+                    City = customer.City,
+                    Region = customer.Region,
+                    PostalCode = customer.PostalCode,
+                    Country = customer.Country,
+                    Information = $"Test information. The user has credit card: {creditCard.Number} with expiry {creditCard.Expiry}",
+                });
             }
 
             return View(new ChangeAccountInfoViewModel()
@@ -323,5 +347,16 @@ namespace WebGoatCore.Controllers
         [HttpGet]
         [AllowAnonymous]
         public IActionResult ResetPasswordConfirmation() => View();
+
+        private CreditCard GetCreditCardForUser()
+        {
+            var creditCard = new CreditCard()
+            {
+                Filename = Path.Combine(_resourcePath, "StoredCreditCards.xml"),
+                Username = _userManager.GetUserName(User)
+            };
+            creditCard.GetCardForUser();
+            return creditCard;
+        }
     }
 }
