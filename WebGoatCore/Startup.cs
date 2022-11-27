@@ -155,8 +155,8 @@ namespace WebGoatCore
                 app.UseExceptionHandler("/Home/Error");
             }
 
-            
 
+            app.UseResponseCompression();
             app.UseWebOptimizer();
 
             app.UseStaticFiles(new StaticFileOptions
