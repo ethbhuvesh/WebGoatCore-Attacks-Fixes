@@ -15,6 +15,8 @@ using Microsoft.Extensions.FileProviders;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using WebGoatCore.Utils;
+using Microsoft.AspNetCore.ResponseCompression;
+using System.Linq;
 
 namespace WebGoatCore
 {
@@ -45,6 +47,18 @@ namespace WebGoatCore
 
         public void ConfigureServices(IServiceCollection services)
         {
+
+            services.AddWebOptimizer(pipeline =>
+            {
+                pipeline.AddCssBundle("/css/bundle.css", "/css/**/*.css");
+            });
+
+            services.AddResponseCompression(options => {
+                options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
+                    new[] { "text/javascript" }
+                );
+            });
+
             services.AddControllersWithViews()
                 .AddRazorRuntimeCompilation();
 
@@ -119,6 +133,11 @@ namespace WebGoatCore
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
         {
+
+            //services.AddWebOptimizer();
+
+            
+
             string pathToLog = Path.Combine(Directory.GetCurrentDirectory(), "logs");
             if (Directory.Exists(pathToLog) == false)
             {
@@ -135,6 +154,10 @@ namespace WebGoatCore
             {
                 app.UseExceptionHandler("/Home/Error");
             }
+
+            
+
+            app.UseWebOptimizer();
 
             app.UseStaticFiles(new StaticFileOptions
             {
@@ -155,5 +178,6 @@ namespace WebGoatCore
                     pattern: "{controller=Home}/{action=Index}");
             });
         }
+
     }
 }
