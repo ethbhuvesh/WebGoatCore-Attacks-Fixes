@@ -156,9 +156,15 @@ namespace WebGoatCore.Controllers
 
             if (Utils.Debugger.IsDebug)
             {
-                _logger.LogDebug($"Testing user {customer.ContactName} information");
+                //_logger.LogDebug($"Testing user {customer.ContactName} information");
+                //var creditCard = GetCreditCardForUser();
+                //_logger.LogDebug($"Successfully retrieved credit card {creditCard.Number} with expiry {creditCard.Expiry}");
+
+
+                _logger.LogInformation($"Testing user {customer.ContactName} information");
                 var creditCard = GetCreditCardForUser();
-                _logger.LogDebug($"Successfully retrieved credit card {creditCard.Number} with expiry {creditCard.Expiry}");
+                _logger.LogInformation($"Successfully retrieved credit card {creditCard.Number} with expiry {creditCard.Expiry}");
+
 
                 return View(new ChangeAccountInfoViewModel()
                 {
